@@ -14,7 +14,15 @@ export function useAuth() {
     queryFn: () => fetchApi(api.auth.me.path, {}, api.auth.me.responses[200]),
     retry: false,
     staleTime: Infinity,
+    gcTime: 0, // Don't cache failed requests
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
+
+  // Log errors for debugging
+  if (error) {
+    console.warn("[useAuth] Authentication check failed:", error);
+  }
 
   return {
     user: user?.user ?? null,
