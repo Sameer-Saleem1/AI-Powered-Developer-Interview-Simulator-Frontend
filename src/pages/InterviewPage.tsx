@@ -14,11 +14,23 @@ export default function InterviewPage() {
   const sessionId = Number(params.id);
   const [, setLocation] = useLocation();
 
-  const { data, isLoading, error } = useSession(sessionId);
+  const { data, isLoading, error, refetch } = useSession(sessionId);
   const submitMutation = useSubmitAnswer();
 
   const [answerDraft, setAnswerDraft] = useState("");
   const [activeQuestionIdx, setActiveQuestionIdx] = useState(0);
+
+  // Debug: Log session ID and loading state
+  useEffect(() => {
+    console.log(
+      "[InterviewPage] Session ID:",
+      sessionId,
+      "Loading:",
+      isLoading,
+      "Error:",
+      error?.message,
+    );
+  }, [sessionId, isLoading, error]);
 
   // Sync active question index
   useEffect(() => {
@@ -51,9 +63,30 @@ export default function InterviewPage() {
   }
 
   if (error || !data) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return (
-      <div className="text-center text-destructive p-8 bg-destructive/10 rounded-xl border border-destructive/20">
-        Error loading interview. Please try again.
+      <div className="max-w-2xl mx-auto pt-8">
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              Error Loading Interview
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 bg-background rounded-lg border border-destructive/20">
+              <p className="text-sm font-mono text-destructive/80">
+                {errorMessage}
+              </p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Session ID: {sessionId}
+            </p>
+            <Button onClick={() => refetch()} className="w-full">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

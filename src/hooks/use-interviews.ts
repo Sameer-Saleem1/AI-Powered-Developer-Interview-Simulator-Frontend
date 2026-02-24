@@ -13,7 +13,7 @@ export function useSessions() {
 }
 
 export function useSession(id: number) {
-  return useQuery({
+  const query = useQuery({
     queryKey: [api.sessions.get.path, id],
     queryFn: () =>
       fetchApi(
@@ -22,7 +22,17 @@ export function useSession(id: number) {
         api.sessions.get.responses[200],
       ),
     enabled: !!id,
+    retry: 2,
+    staleTime: 0,
+    gcTime: 0,
   });
+
+  // Debug errors
+  if (query.error) {
+    console.error("[useSession] Error fetching session:", query.error);
+  }
+
+  return query;
 }
 
 export function useCreateSession() {
