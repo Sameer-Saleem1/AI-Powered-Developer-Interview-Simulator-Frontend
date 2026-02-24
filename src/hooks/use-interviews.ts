@@ -7,14 +7,20 @@ import { useLocation } from "wouter";
 export function useSessions() {
   return useQuery({
     queryKey: [api.sessions.list.path],
-    queryFn: () => fetchApi(api.sessions.list.path, {}, api.sessions.list.responses[200]),
+    queryFn: () =>
+      fetchApi(api.sessions.list.path, {}, api.sessions.list.responses[200]),
   });
 }
 
 export function useSession(id: number) {
   return useQuery({
     queryKey: [api.sessions.get.path, id],
-    queryFn: () => fetchApi(buildUrl(api.sessions.get.path, { id }), {}, api.sessions.get.responses[200]),
+    queryFn: () =>
+      fetchApi(
+        buildUrl(api.sessions.get.path, { id }),
+        {},
+        api.sessions.get.responses[200],
+      ),
     enabled: !!id,
   });
 }
@@ -24,18 +30,33 @@ export function useCreateSession() {
   const [, setLocation] = useLocation();
 
   return useMutation({
-    mutationFn: async (data: { role: string; level: string; techStack: string[] }) => {
-      return fetchApi(api.sessions.create.path, {
-        method: api.sessions.create.method,
-        body: JSON.stringify(data),
-      }, api.sessions.create.responses[201]);
+    mutationFn: async (data: {
+      role: string;
+      level: string;
+      techStack: string[];
+    }) => {
+      return fetchApi(
+        api.sessions.create.path,
+        {
+          method: api.sessions.create.method,
+          body: JSON.stringify(data),
+        },
+        api.sessions.create.responses[201],
+      );
     },
     onSuccess: (session) => {
-      toast({ title: "Session created", description: "Your interview is ready to begin." });
+      toast({
+        title: "Session created",
+        description: "Your interview is ready to begin.",
+      });
       setLocation(`/interview/${session.id}`);
     },
     onError: (err: Error) => {
-      toast({ title: "Failed to create session", description: err.message, variant: "destructive" });
+      toast({
+        title: "Failed to create session",
+        description: err.message,
+        variant: "destructive",
+      });
     },
   });
 }
@@ -45,12 +66,22 @@ export function useSubmitAnswer() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ questionId, answerText }: { questionId: number; answerText: string }) => {
+    mutationFn: async ({
+      questionId,
+      answerText,
+    }: {
+      questionId: number;
+      answerText: string;
+    }) => {
       const url = buildUrl(api.questions.answer.path, { id: questionId });
-      return fetchApi(url, {
-        method: api.questions.answer.method,
-        body: JSON.stringify({ answerText }),
-      }, api.questions.answer.responses[200]);
+      return fetchApi(
+        url,
+        {
+          method: api.questions.answer.method,
+          body: JSON.stringify({ answerText }),
+        },
+        api.questions.answer.responses[200],
+      );
     },
     onSuccess: (_updatedQuestion) => {
       // Invalidate the session query to refresh the questions list
@@ -59,7 +90,11 @@ export function useSubmitAnswer() {
       queryClient.invalidateQueries({ queryKey: [api.sessions.list.path] });
     },
     onError: (err: Error) => {
-      toast({ title: "Failed to submit answer", description: err.message, variant: "destructive" });
+      toast({
+        title: "Failed to submit answer",
+        description: err.message,
+        variant: "destructive",
+      });
     },
   });
 }

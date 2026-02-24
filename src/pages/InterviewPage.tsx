@@ -13,10 +13,10 @@ export default function InterviewPage() {
   const params = useParams();
   const sessionId = Number(params.id);
   const [, setLocation] = useLocation();
-  
+
   const { data, isLoading, error } = useSession(sessionId);
   const submitMutation = useSubmitAnswer();
-  
+
   const [answerDraft, setAnswerDraft] = useState("");
   const [activeQuestionIdx, setActiveQuestionIdx] = useState(0);
 
@@ -25,7 +25,7 @@ export default function InterviewPage() {
     if (data?.questions) {
       // Find first unanswered question, or default to last if all answered (should redirect normally)
       const unansweredIdx = data.questions.findIndex((q: any) => !q.answerText);
-      
+
       if (unansweredIdx === -1) {
         // All questions answered, ensure we route to results if the session score is finalized
         if (data.session.totalScore !== null) {
@@ -43,27 +43,33 @@ export default function InterviewPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="text-muted-foreground animate-pulse">Loading interview context...</p>
+        <p className="text-muted-foreground animate-pulse">
+          Loading interview context...
+        </p>
       </div>
     );
   }
 
   if (error || !data) {
-    return <div className="text-center text-destructive p-8 bg-destructive/10 rounded-xl border border-destructive/20">Error loading interview. Please try again.</div>;
+    return (
+      <div className="text-center text-destructive p-8 bg-destructive/10 rounded-xl border border-destructive/20">
+        Error loading interview. Please try again.
+      </div>
+    );
   }
 
   const { session, questions } = data;
   const currentQuestion = questions[activeQuestionIdx];
   const totalQuestions = questions.length || 5;
   const progressPercent = (activeQuestionIdx / totalQuestions) * 100;
-  
+
   const isAnswered = !!currentQuestion?.answerText;
 
   const handleSubmit = () => {
     if (!answerDraft.trim() || !currentQuestion) return;
-    submitMutation.mutate({ 
-      questionId: currentQuestion.id, 
-      answerText: answerDraft 
+    submitMutation.mutate({
+      questionId: currentQuestion.id,
+      answerText: answerDraft,
     });
   };
 
@@ -72,7 +78,7 @@ export default function InterviewPage() {
       setLocation(`/results/${sessionId}`);
     } else {
       setAnswerDraft(""); // Reset draft for next question
-      setActiveQuestionIdx(prev => prev + 1);
+      setActiveQuestionIdx((prev) => prev + 1);
     }
   };
 
@@ -93,8 +99,12 @@ export default function InterviewPage() {
               {session.role} Interview
             </h2>
             <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline" className="text-xs">{session.level}</Badge>
-              <span className="text-muted-foreground text-sm">Question {activeQuestionIdx + 1} of {totalQuestions}</span>
+              <Badge variant="outline" className="text-xs">
+                {session.level}
+              </Badge>
+              <span className="text-muted-foreground text-sm">
+                Question {activeQuestionIdx + 1} of {totalQuestions}
+              </span>
             </div>
           </div>
         </div>
@@ -125,7 +135,7 @@ export default function InterviewPage() {
             <CardContent className="pt-6">
               {!isAnswered ? (
                 <div className="space-y-4">
-                  <Textarea 
+                  <Textarea
                     placeholder="Type your detailed answer here. Focus on clarity, architecture, and tradeoffs..."
                     className="min-h-[250px] resize-y bg-background/50 border-border focus:border-primary focus:ring-primary/20 p-4 text-base leading-relaxed"
                     value={answerDraft}
@@ -133,49 +143,67 @@ export default function InterviewPage() {
                     disabled={submitMutation.isPending}
                   />
                   <div className="flex justify-end">
-                    <Button 
-                      onClick={handleSubmit} 
+                    <Button
+                      onClick={handleSubmit}
                       disabled={!answerDraft.trim() || submitMutation.isPending}
                       className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 px-8 rounded-xl"
                     >
                       {submitMutation.isPending ? (
-                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Evaluating...</>
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
+                          Evaluating...
+                        </>
                       ) : (
-                        <><Send className="w-4 h-4 mr-2" /> Submit Answer</>
+                        <>
+                          <Send className="w-4 h-4 mr-2" /> Submit Answer
+                        </>
                       )}
                     </Button>
                   </div>
                 </div>
               ) : (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
                   className="space-y-6"
                 >
                   <div className="p-4 rounded-xl bg-muted/30 border border-border">
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Your Answer</h4>
-                    <p className="whitespace-pre-wrap text-foreground/90">{currentQuestion.answerText}</p>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                      Your Answer
+                    </h4>
+                    <p className="whitespace-pre-wrap text-foreground/90">
+                      {currentQuestion.answerText}
+                    </p>
                   </div>
 
-                  <div className={`p-5 rounded-xl border relative overflow-hidden ${
-                    currentQuestion.score && currentQuestion.score >= 15 
-                      ? 'bg-emerald-500/10 border-emerald-500/30' 
-                      : currentQuestion.score && currentQuestion.score >= 10
-                      ? 'bg-amber-500/10 border-amber-500/30'
-                      : 'bg-destructive/10 border-destructive/30'
-                  }`}>
+                  <div
+                    className={`p-5 rounded-xl border relative overflow-hidden ${
+                      currentQuestion.score && currentQuestion.score >= 15
+                        ? "bg-emerald-500/10 border-emerald-500/30"
+                        : currentQuestion.score && currentQuestion.score >= 10
+                          ? "bg-amber-500/10 border-amber-500/30"
+                          : "bg-destructive/10 border-destructive/30"
+                    }`}
+                  >
                     <div className="absolute top-0 right-0 p-4 opacity-10">
                       <Sparkles className="w-24 h-24" />
                     </div>
-                    
+
                     <div className="flex items-center justify-between mb-4 relative z-10">
                       <h4 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
                         <Brain className="w-4 h-4" /> AI Feedback
                       </h4>
-                      <Badge variant="outline" className={`font-bold text-lg px-3 py-1 ${
-                        currentQuestion.score && currentQuestion.score >= 15 ? 'text-emerald-500 border-emerald-500/50' : 
-                        currentQuestion.score && currentQuestion.score >= 10 ? 'text-amber-500 border-amber-500/50' : 
-                        'text-destructive border-destructive/50'
-                      }`}>
+                      <Badge
+                        variant="outline"
+                        className={`font-bold text-lg px-3 py-1 ${
+                          currentQuestion.score && currentQuestion.score >= 15
+                            ? "text-emerald-500 border-emerald-500/50"
+                            : currentQuestion.score &&
+                                currentQuestion.score >= 10
+                              ? "text-amber-500 border-amber-500/50"
+                              : "text-destructive border-destructive/50"
+                        }`}
+                      >
                         {currentQuestion.score} / 20
                       </Badge>
                     </div>
@@ -185,11 +213,13 @@ export default function InterviewPage() {
                   </div>
 
                   <div className="flex justify-end pt-4">
-                    <Button 
+                    <Button
                       onClick={handleNext}
                       className="bg-foreground text-background hover:bg-foreground/90 px-8 rounded-xl"
                     >
-                      {activeQuestionIdx === totalQuestions - 1 ? "Finish Interview" : "Next Question"}
+                      {activeQuestionIdx === totalQuestions - 1
+                        ? "Finish Interview"
+                        : "Next Question"}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>

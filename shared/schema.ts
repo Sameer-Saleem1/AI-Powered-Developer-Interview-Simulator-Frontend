@@ -34,13 +34,16 @@ export const usersRelations = relations(users, ({ many }) => ({
   interviewSessions: many(interviewSessions),
 }));
 
-export const interviewSessionsRelations = relations(interviewSessions, ({ one, many }) => ({
-  user: one(users, {
-    fields: [interviewSessions.userId],
-    references: [users.id],
+export const interviewSessionsRelations = relations(
+  interviewSessions,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [interviewSessions.userId],
+      references: [users.id],
+    }),
+    questions: many(questions),
   }),
-  questions: many(questions),
-}));
+);
 
 export const questionsRelations = relations(questions, ({ one }) => ({
   session: one(interviewSessions, {
@@ -53,21 +56,33 @@ export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-export const insertInterviewSessionSchema = createInsertSchema(interviewSessions).omit({ id: true, createdAt: true });
-export type InsertInterviewSession = z.infer<typeof insertInterviewSessionSchema>;
+export const insertInterviewSessionSchema = createInsertSchema(
+  interviewSessions,
+).omit({ id: true, createdAt: true });
+export type InsertInterviewSession = z.infer<
+  typeof insertInterviewSessionSchema
+>;
 export type InterviewSession = typeof interviewSessions.$inferSelect;
 
-export const insertQuestionSchema = createInsertSchema(questions).omit({ id: true });
+export const insertQuestionSchema = createInsertSchema(questions).omit({
+  id: true,
+});
 export type InsertQuestion = z.infer<typeof insertQuestionSchema>;
 export type Question = typeof questions.$inferSelect;
 
 // Request/Response types
-export const loginSchema = z.object({ email: z.string().email(), password: z.string() });
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+});
 export type LoginRequest = z.infer<typeof loginSchema>;
 
-export type AuthResponse = { user: Omit<User, 'password'>; token: string };
+export type AuthResponse = { user: Omit<User, "password">; token: string };
 
-export type CreateSessionRequest = Omit<InsertInterviewSession, "userId" | "totalScore" | "summary">;
+export type CreateSessionRequest = Omit<
+  InsertInterviewSession,
+  "userId" | "totalScore" | "summary"
+>;
 
 export type SubmitAnswerRequest = { answerText: string };
 export type AnswerResponse = Question;

@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { insertUserSchema, loginSchema } from './schema';
+import { z } from "zod";
+import { insertUserSchema, loginSchema } from "./schema";
 
 export const errorSchemas = {
   validation: z.object({ message: z.string(), field: z.string().optional() }),
@@ -11,8 +11,8 @@ export const errorSchemas = {
 export const api = {
   auth: {
     register: {
-      method: 'POST' as const,
-      path: '/api/auth/register' as const,
+      method: "POST" as const,
+      path: "/api/auth/register" as const,
       input: insertUserSchema,
       responses: {
         201: z.object({ user: z.any(), token: z.string() }),
@@ -20,8 +20,8 @@ export const api = {
       },
     },
     login: {
-      method: 'POST' as const,
-      path: '/api/auth/login' as const,
+      method: "POST" as const,
+      path: "/api/auth/login" as const,
       input: loginSchema,
       responses: {
         200: z.object({ user: z.any(), token: z.string() }),
@@ -29,25 +29,25 @@ export const api = {
       },
     },
     me: {
-      method: 'GET' as const,
-      path: '/api/auth/me' as const,
+      method: "GET" as const,
+      path: "/api/auth/me" as const,
       responses: {
         200: z.object({ user: z.any() }),
         401: errorSchemas.unauthorized,
       },
-    }
+    },
   },
   sessions: {
     list: {
-      method: 'GET' as const,
-      path: '/api/sessions' as const,
+      method: "GET" as const,
+      path: "/api/sessions" as const,
       responses: {
         200: z.array(z.any()), // array of sessions
       },
     },
     create: {
-      method: 'POST' as const,
-      path: '/api/sessions' as const,
+      method: "POST" as const,
+      path: "/api/sessions" as const,
       input: z.object({
         role: z.string(),
         level: z.string(),
@@ -59,8 +59,8 @@ export const api = {
       },
     },
     get: {
-      method: 'GET' as const,
-      path: '/api/sessions/:id' as const,
+      method: "GET" as const,
+      path: "/api/sessions/:id" as const,
       responses: {
         200: z.object({
           session: z.any(),
@@ -72,8 +72,8 @@ export const api = {
   },
   questions: {
     answer: {
-      method: 'POST' as const,
-      path: '/api/questions/:id/answer' as const,
+      method: "POST" as const,
+      path: "/api/questions/:id/answer" as const,
       input: z.object({ answerText: z.string() }),
       responses: {
         200: z.any(), // updated question with AI feedback and score
@@ -84,7 +84,10 @@ export const api = {
   },
 };
 
-export function buildUrl(path: string, params?: Record<string, string | number>): string {
+export function buildUrl(
+  path: string,
+  params?: Record<string, string | number>,
+): string {
   let url = path;
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
