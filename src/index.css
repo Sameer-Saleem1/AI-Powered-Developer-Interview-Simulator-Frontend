@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Outfit:wght@100..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'DM Sans', sans-serif;
+    --font-display: 'Outfit', sans-serif;
+
+    /* Sleek Modern Dark Theme as Default */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 13%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 13%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 252 83% 65%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 252 83% 65%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 252 83% 65%;
+
+    --radius: 0.75rem;
+
+    /* Chart Colors for Recharts */
+    --chart-1: 252 83% 65%;
+    --chart-2: 199 89% 48%;
+    --chart-3: 326 100% 74%;
+    --chart-4: 43 100% 64%;
+    --chart-5: 160 84% 39%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-primary/30 selection:text-primary-foreground;
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply tracking-tight font-semibold;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-card/60 backdrop-blur-xl border border-border/50 shadow-xl shadow-black/20;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-400 to-indigo-400;
+  }
+}
