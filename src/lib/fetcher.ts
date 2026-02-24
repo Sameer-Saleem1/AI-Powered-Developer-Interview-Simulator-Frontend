@@ -65,7 +65,7 @@ export async function fetchApi<T>(
         errorMessage = errorText || res.statusText;
       }
       console.error(`[API Error] ${res.status} ${fullUrl}:`, errorMessage);
-      throw new Error(errorMessage);
+      throw new Error(`${res.status}: ${errorMessage}`);
     }
 
     if (res.status === 204) return {} as T;

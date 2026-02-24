@@ -13,15 +13,21 @@ export function useSessions() {
 }
 
 export function useSession(id: number) {
+  const isValidId = typeof id === "number" && id > 0 && !isNaN(id);
+
   const query = useQuery({
     queryKey: [api.sessions.get.path, id],
-    queryFn: () =>
-      fetchApi(
+    queryFn: () => {
+      if (!isValidId) {
+        throw new Error(`Invalid session ID: ${id}`);
+      }
+      return fetchApi(
         buildUrl(api.sessions.get.path, { id }),
         {},
         api.sessions.get.responses[200],
-      ),
-    enabled: !!id,
+      );
+    },
+    enabled: isValidId,
     retry: 2,
     staleTime: 0,
     gcTime: 0,
@@ -98,6 +104,11 @@ export function useSubmitAnswer() {
       queryClient.invalidateQueries({ queryKey: [api.sessions.get.path] });
       // Also invalidate the sessions list to update the dashboard
       queryClient.invalidateQueries({ queryKey: [api.sessions.list.path] });
+
+      toast({
+        title: "Answer submitted!",
+        description: "Your response has been evaluated.",
+      });
     },
     onError: (err: Error) => {
       toast({

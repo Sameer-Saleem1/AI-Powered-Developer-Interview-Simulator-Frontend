@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useSession, useSubmitAnswer } from "@/hooks/use-interviews";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Send, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import {
+  Brain,
+  Send,
+  ArrowRight,
+  Loader2,
+  Sparkles,
+  AlertCircle,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function InterviewPage() {
@@ -19,6 +26,7 @@ export default function InterviewPage() {
 
   const [answerDraft, setAnswerDraft] = useState("");
   const [activeQuestionIdx, setActiveQuestionIdx] = useState(0);
+  const hasInitialized = useRef(false);
 
   // Debug: Log session ID and loading state
   useEffect(() => {
@@ -29,27 +37,41 @@ export default function InterviewPage() {
       isLoading,
       "Error:",
       error?.message,
+      "Data:",
+      data,
+      "Active Index:",
+      activeQuestionIdx,
     );
-  }, [sessionId, isLoading, error]);
+    // Warn if session ID is invalid
+    if (!sessionId || isNaN(sessionId)) {
+      console.error("[InterviewPage] Invalid session ID:", params.id);
+    }
+  }, [sessionId, isLoading, error, data, params.id, activeQuestionIdx]);
 
-  // Sync active question index
+  // Initialize to first unanswered question ONCE on initial load only
   useEffect(() => {
-    if (data?.questions) {
-      // Find first unanswered question, or default to last if all answered (should redirect normally)
+    if (data?.questions && !hasInitialized.current) {
+      hasInitialized.current = true;
+
+      // Find first unanswered question
       const unansweredIdx = data.questions.findIndex((q: any) => !q.answerText);
 
       if (unansweredIdx === -1) {
-        // All questions answered, ensure we route to results if the session score is finalized
+        // All questions answered, redirect to results
         if (data.session.totalScore !== null) {
           setLocation(`/results/${sessionId}`);
-        } else {
-          setActiveQuestionIdx(data.questions.length - 1);
         }
-      } else {
+      } else if (unansweredIdx > 0) {
+        // Start from first unanswered question if not at beginning
         setActiveQuestionIdx(unansweredIdx);
       }
     }
-  }, [data, sessionId, setLocation]);
+  }, [data?.questions, sessionId, setLocation]);
+
+  // Reset answerDraft when the active question changes
+  useEffect(() => {
+    setAnswerDraft("");
+  }, [activeQuestionIdx]);
 
   if (isLoading) {
     return (
@@ -58,6 +80,7 @@ export default function InterviewPage() {
         <p className="text-muted-foreground animate-pulse">
           Loading interview context...
         </p>
+        <p className="text-xs text-muted-foreground">Session ID: {sessionId}</p>
       </div>
     );
   }
@@ -65,26 +88,65 @@ export default function InterviewPage() {
   if (error || !data) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
+    const apiUrl = (import.meta.env.VITE_API_URL as string) || "Not configured";
+
+    console.error("[InterviewPage] Full error state:", {
+      error,
+      data,
+      sessionId,
+      errorMessage,
+      apiUrl,
+    });
+
     return (
-      <div className="max-w-2xl mx-auto pt-8">
+      <div className="max-w-2xl mx-auto pt-8 space-y-4">
         <Card className="border-destructive/50 bg-destructive/5">
           <CardHeader>
-            <CardTitle className="text-destructive">
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertCircle className="w-5 h-5" />
               Error Loading Interview
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 bg-background rounded-lg border border-destructive/20">
-              <p className="text-sm font-mono text-destructive/80">
-                {errorMessage}
+            <div className="p-4 bg-background rounded-lg border border-destructive/20 font-mono text-xs space-y-2">
+              <p className="text-destructive/90">
+                <strong>Error:</strong> {errorMessage}
+              </p>
+              <p className="text-muted-foreground">
+                <strong>Session ID:</strong> {sessionId || "Not found"}
+              </p>
+              <p className="text-muted-foreground break-all">
+                <strong>API URL:</strong> {apiUrl}
+              </p>
+              <p className="text-muted-foreground">
+                <strong>Endpoint:</strong> {apiUrl}/api/sessions/{sessionId}
               </p>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Session ID: {sessionId}
-            </p>
-            <Button onClick={() => refetch()} className="w-full">
-              Try Again
-            </Button>
+
+            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                Troubleshooting tips:
+              </p>
+              <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
+                <li>Check browser DevTools Console for detailed API logs</li>
+                <li>Check Network tab - verify the request is being made</li>
+                <li>Verify backend is running at the API URL</li>
+                <li>Check if CORS is enabled on the backend</li>
+              </ul>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={() => refetch()} className="flex-1">
+                Retry
+              </Button>
+              <Button
+                onClick={() => setLocation("/")}
+                variant="outline"
+                className="flex-1"
+              >
+                Back to Dashboard
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -94,31 +156,40 @@ export default function InterviewPage() {
   const { session, questions } = data;
   const currentQuestion = questions[activeQuestionIdx];
   const totalQuestions = questions.length || 5;
-  const progressPercent = (activeQuestionIdx / totalQuestions) * 100;
+
+  // Calculate progress based on answered questions, not current index
+  const answeredCount = questions.filter((q: any) => q.answerText).length;
+  const progressPercent = (answeredCount / totalQuestions) * 100;
+
+  console.log(
+    `[Progress] ${answeredCount}/${totalQuestions} answered (${progressPercent.toFixed(0)}%)`,
+  );
 
   const isAnswered = !!currentQuestion?.answerText;
 
   const handleSubmit = () => {
     if (!answerDraft.trim() || !currentQuestion) return;
-    submitMutation.mutate({
-      questionId: currentQuestion.id,
-      answerText: answerDraft,
-    });
+    submitMutation.mutate(
+      {
+        questionId: currentQuestion.id,
+        answerText: answerDraft,
+      },
+      {
+        onSuccess: () => {
+          // Clear the draft after successful submission
+          setAnswerDraft("");
+        },
+      },
+    );
   };
 
   const handleNext = () => {
     if (activeQuestionIdx === totalQuestions - 1) {
       setLocation(`/results/${sessionId}`);
     } else {
-      setAnswerDraft(""); // Reset draft for next question
       setActiveQuestionIdx((prev) => prev + 1);
     }
   };
-
-  // Also reset answerDraft when the active question changes from the useEffect sync
-  useEffect(() => {
-    setAnswerDraft("");
-  }, [activeQuestionIdx]);
 
   if (!currentQuestion) return null;
 
@@ -137,6 +208,9 @@ export default function InterviewPage() {
               </Badge>
               <span className="text-muted-foreground text-sm">
                 Question {activeQuestionIdx + 1} of {totalQuestions}
+              </span>
+              <span className="text-muted-foreground text-xs">
+                • {answeredCount} answered
               </span>
             </div>
           </div>
