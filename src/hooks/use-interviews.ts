@@ -52,7 +52,7 @@ export function useSubmitAnswer() {
         body: JSON.stringify({ answerText }),
       }, api.questions.answer.responses[200]);
     },
-    onSuccess: (updatedQuestion) => {
+    onSuccess: (_updatedQuestion) => {
       // Invalidate the session query to refresh the questions list
       queryClient.invalidateQueries({ queryKey: [api.sessions.get.path] });
       // Also invalidate the sessions list to update the dashboard

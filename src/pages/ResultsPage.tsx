@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "wouter";
 import { useSession } from "@/hooks/use-interviews";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Trophy, ArrowLeft, Home, Sparkles, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Home, Sparkles, CheckCircle2, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 

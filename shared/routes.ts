@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertUserSchema, loginSchema, interviewSessions, questions, users } from './schema';
+import { insertUserSchema, loginSchema } from './schema';
 
 export const errorSchemas = {
   validation: z.object({ message: z.string(), field: z.string().optional() }),
